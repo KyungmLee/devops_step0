@@ -1,0 +1,56 @@
+name: Deploy to Ubuntu Server   # 워크플로우 관리 이름
+
+on:              # 어떤 환경에서 작업할지 작업 대상 지정
+  push:
+    branches:
+      - main  # main 브랜치에 푸시될 때 트리거
+
+jobs:            # 작업 단계들 지정 (yml 칸 수 정확하게 써야 함)
+  build:
+    runs-on: ubuntu-latest       # 개발서버 버전 지정(최신 버전)
+
+    steps: 
+    # 코드 체크아웃   (깃헙 소스 가져오기)
+    - name: Checkout repository    # name : 진행할 라벨명
+      uses: actions/checkout@v2    # uses는 함수명 지정
+
+    # JDK 17 설정
+    - name: Set up JDK 17
+      uses: actions/setup-java@v1
+      with:
+        java-version: '17'
+
+    - name: Build with Gradle
+      run: # 여러 명령을 파이프라인으로 지정
+        chmo d +x ./gradlew
+        ./gradlew build
+
+    - name: Set SSH key permissions
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+
+    - name: Add SSH key
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
+
+    - name: Add known_hosts
+      run: |
+        ssh-keyscan -t ed25519 3.38.246.215 >> ~/.ssh/known_hosts
+
+    #- name: 기존프로세스 종료 
+    #  run: |
+    #    kill -9 $(ps -ef | grep devops | grep -v grep | head -n 1 | awk '{print $2}') || true
+
+    - name: Deploy to Server
+      run: scp build/libs/*.jar ubuntu@3.38.246.215:~/
+
+
+    - name: Run SSH commands
+      run: |
+        ssh -i ~/.ssh/id_rsa ubuntu@3.38.246.215 << 'EOF'
+          pkill -f 'java -jar' || true
+          nohup java -jar ~/devops_step0-0.0.1-SNAPSHOT.jar > log.txt 2>&1 &
+        EOF
