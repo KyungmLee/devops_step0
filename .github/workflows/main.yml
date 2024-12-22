@@ -21,7 +21,7 @@ jobs:            # 작업 단계들 지정 (yml 칸 수 정확하게 써야 함)
         java-version: '17'
 
     - name: Build with Gradle
-      run: # 여러 명령을 파이프라인으로 지정
+      run: |    # 여러 명령을 파이프라인으로 지정
         chmo d +x ./gradlew
         ./gradlew build
 
@@ -38,19 +38,19 @@ jobs:            # 작업 단계들 지정 (yml 칸 수 정확하게 써야 함)
 
     - name: Add known_hosts
       run: |
-        ssh-keyscan -t ed25519 3.38.246.215 >> ~/.ssh/known_hosts
+        ssh-keyscan -t ed25519 3.36.106.38 >> ~/.ssh/known_hosts
 
     #- name: 기존프로세스 종료 
     #  run: |
     #    kill -9 $(ps -ef | grep devops | grep -v grep | head -n 1 | awk '{print $2}') || true
 
     - name: Deploy to Server
-      run: scp build/libs/*.jar ubuntu@3.38.246.215:~/
+      run: scp build/libs/*.jar ubuntu@3.36.106.38:~/
 
 
     - name: Run SSH commands
       run: |
-        ssh -i ~/.ssh/id_rsa ubuntu@3.38.246.215 << 'EOF'
+        ssh -i ~/.ssh/id_rsa ubuntu@3.36.106.38 << 'EOF'
           pkill -f 'java -jar' || true
           nohup java -jar ~/devops_step0-0.0.1-SNAPSHOT.jar > log.txt 2>&1 &
         EOF
