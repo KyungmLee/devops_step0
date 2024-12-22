@@ -7,7 +7,7 @@ WORKDIR /app
 COPY build/libs/*SNAPSHOT.jar app.jar
 
 # 외부 노출 포트 설정
-EXPOSE port
+EXPOSE 9000
 
 # 실행 명령어를 파라미터 형식으로 전달
 ENTRYPOINT ["java", "-jar", "app.jar"]
