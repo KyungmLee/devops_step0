@@ -22,7 +22,7 @@ jobs:            # 작업 단계들 지정 (yml 칸 수 정확하게 써야 함)
 
     - name: Build with Gradle
       run: |    # 여러 명령을 파이프라인으로 지정
-        chmo d +x ./gradlew
+        chmod +x ./gradlew
         ./gradlew build
 
     - name: Set SSH key permissions
